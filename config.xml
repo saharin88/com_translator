@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+
+    <fieldset
+            name="default"
+            label="COM_TRANSLATOR_DEFAULT_CONFIGURATION">
+
+        <field
+                name="show_sys"
+                type="radio"
+                label="COM_TRANSLATOR_SHOW_SYS_FILES"
+                class="btn-group btn-group-yesno"
+                default="0"
+        >
+            <option value="1">JYES</option>
+            <option value="0">JNO</option>
+        </field>
+
+        <field
+                name="show_self"
+                type="radio"
+                label="COM_TRANSLATOR_SHOW_SELF_FILES"
+                class="btn-group btn-group-yesno"
+                default="0"
+        >
+            <option value="1">JYES</option>
+            <option value="0">JNO</option>
+        </field>
+
+    </fieldset>
+
+</config>

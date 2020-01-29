@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset name="general">
+
+        <field
+                name="key"
+                type="text"
+                label="COM_TRANSLATOR_CONSTANT_KEY"
+                required="true"
+                class="input-xxlarge input-large-text"
+        />
+
+        <field
+                name="value"
+                type="textarea"
+                required="true"
+                label="COM_TRANSLATOR_CONSTANT_VALUE"
+                filter="raw"
+                class="input-xxlarge input-large-text"
+        />
+
+        <field
+                name="row"
+                type="hidden"
+        />
+
+        <field
+                name="file"
+                type="hidden"
+                required="true"
+        />
+
+    </fieldset>
+</form>

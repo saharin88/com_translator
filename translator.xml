@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" version="3.7" method="upgrade">
+
+    <name>com_translator</name>
+    <version>1.0.0</version>
+    <creationDate>January 2020</creationDate>
+    <author>Dmitry Sakharuk</author>
+    <authorEmail>contact@joom.work</authorEmail>
+    <authorUrl>http://joom.work</authorUrl>
+    <description>COM_TRANSLATOR_DESC</description>
+
+    <administration>
+
+        <menu>COM_TRANSLATOR</menu>
+
+        <files>
+            <folder>controllers</folder>
+            <folder>helpers</folder>
+            <folder>layouts</folder>
+            <folder>models</folder>
+            <folder>views</folder>
+            <filename>config.xml</filename>
+            <filename>controller.php</filename>
+            <filename>translator.php</filename>
+        </files>
+
+        <languages folder="language">
+            <language tag="en-GB">en-GB/en-GB.com_translator.ini</language>
+            <language tag="en-GB">en-GB/en-GB.com_translator.sys.ini</language>
+            <language tag="ru-RU">ru-RU/ru-RU.com_translator.ini</language>
+            <language tag="ru-RU">ru-RU/ru-RU.com_translator.sys.ini</language>
+            <language tag="uk-UA">uk-UA/uk-UA.com_translator.ini</language>
+            <language tag="uk-UA">uk-UA/uk-UA.com_translator.sys.ini</language>
+        </languages>
+
+    </administration>
+
+</extension>

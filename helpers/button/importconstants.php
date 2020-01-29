@@ -1,0 +1,42 @@
+<?php
+
+defined('JPATH_PLATFORM') or die;
+
+use Joomla\CMS\
+{
+	Factory,
+	Language\Text,
+	Layout\FileLayout,
+	Toolbar\ToolbarButton,
+};
+
+class JToolbarButtonImportConstants extends ToolbarButton
+{
+
+	protected $_name = 'ImportConstants';
+
+	public function fetchButton($type = 'ImportConstants', $name = '', $label = '', $files = [], $to_file = null)
+	{
+		if (empty($to_file) || file_exists(TranslatorHelper::getPath($to_file)) === false)
+		{
+			return null;
+		}
+
+		$options = [
+			'name'    => $name,
+			'label'   => Text::_($label),
+			'files'   => $files,
+			'to_file' => $to_file
+		];
+
+		$layout = new FileLayout(strtolower($type));
+
+		return $layout->render($options);
+	}
+
+	public function fetchId($type, $name)
+	{
+		return $this->_parent->getName() . '-importconstants';
+	}
+
+}

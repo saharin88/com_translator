@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset name="general">
+
+        <field
+                name="extension"
+                type="extension"
+                label="COM_TRANSLATOR_SELECT_EXTENSION"
+                required="true"
+        >
+            <option value=""></option>
+        </field>
+
+        <field
+                name="language"
+                type="translator.language"
+                label="COM_TRANSLATOR_SELECT_LANGUAGE"
+                required="true"
+        />
+
+        <field
+                name="sys"
+                type="radio"
+                default="0"
+                label="COM_TRANSLATOR_FILE_SYS_LABEL"
+                class="btn-group btn-group-yesno"
+        >
+            <option value="1">JYES</option>
+            <option value="0">JNO</option>
+        </field>
+
+    </fieldset>
+</form>
