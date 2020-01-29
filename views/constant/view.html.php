@@ -7,6 +7,7 @@ use Joomla\CMS\
 	Language\Text,
 	MVC\View\HtmlView,
 	Toolbar\ToolbarHelper,
+	Factory,
 };
 
 class TranslatorViewConstant extends HtmlView
@@ -40,6 +41,9 @@ class TranslatorViewConstant extends HtmlView
 	{
 
 		ToolbarHelper::title(Text::_((empty($this->state->get('row')) ? 'COM_TRANSLATOR_CONSTANT_ADD' : 'COM_TRANSLATOR_CONSTANT_EDIT')), 'edit');
+
+		Factory::getDocument()->addStyleDeclaration('#toolbar-heart {float:right;}');
+		ToolbarHelper::link('https://www.liqpay.ua/en/checkout/saharin88', 'Donate', 'heart');
 
 		ToolbarHelper::apply('constant.apply');
 		ToolbarHelper::save('constant.save');
