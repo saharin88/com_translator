@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension type="component" version="3.7" method="upgrade">
+<extension type="component" version="3.9" method="upgrade">
 
     <name>com_translator</name>
     <version>1.0.0</version>
