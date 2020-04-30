@@ -28,6 +28,11 @@ class TranslatorModelConstant extends FormModel
 			$form->setFieldAttribute('key', 'readonly', true);
 		}
 
+		if(Factory::getApplication()->input->get->getBool('ajax', false))
+		{
+			$form->setFieldAttribute('value','type', 'textarea');
+		}
+
 		return $form;
 	}
 
