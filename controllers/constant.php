@@ -90,10 +90,7 @@ class TranslatorControllerConstant extends FormController
 	public function save($key = null, $urlVar = null)
 	{
 
-		if ($this->checkToken() === false)
-		{
-			die('Error Token');
-		}
+		$this->checkToken('post', false) or die('Error Token');
 
 		$app     = Factory::getApplication();
 		$model   = $this->getModel();
@@ -211,10 +208,7 @@ class TranslatorControllerConstant extends FormController
 
 	public function cancel($key = null)
 	{
-		if ($this->checkToken() === false)
-		{
-			die('Error Token');
-		}
+		$this->checkToken('post', false) or die('Error Token');
 
 		$file = $this->input->get->get('file', null, 'raw');
 

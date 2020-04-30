@@ -129,4 +129,23 @@ class TranslatorModelFile extends FormModel
 		return $db->loadObject();
 	}
 
+	public function reSave(array $files)
+	{
+		$app = Factory::getApplication();
+
+		foreach ($files as $file)
+		{
+			try
+			{
+				$constants = TranslatorHelper::getConstants($file);
+				TranslatorHelper::saveToIniFile($constants, $file);
+			}
+			catch (Exception $e)
+			{
+				$app->enqueueMessage($e->getMessage(), 'error');
+			}
+		}
+
+	}
+
 }

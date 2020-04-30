@@ -21,10 +21,7 @@ class TranslatorControllerConstants extends BaseController
 
 	public function delete()
 	{
-		if ($this->checkToken() === false)
-		{
-			die('Error Token');
-		}
+		$this->checkToken('post', false) or die('Error Token');
 
 		/** @var TranslatorModelConstant $model */
 		$model = $this->getModel('Constant');
@@ -49,10 +46,7 @@ class TranslatorControllerConstants extends BaseController
 
 	public function import()
 	{
-		if ($this->checkToken() === false)
-		{
-			die('Error Token');
-		}
+		$this->checkToken('post', false) or die('Error Token');
 
 		$app = Factory::getApplication();
 
@@ -93,7 +87,7 @@ class TranslatorControllerConstants extends BaseController
 	public function translate()
 	{
 
-		$this->checkToken() or die('Error Token');
+		$this->checkToken('post', false) or die('Error Token');
 
 		/** @var TranslatorModelConstant $model */
 		$model     = $this->getModel('Constant');
@@ -123,7 +117,7 @@ class TranslatorControllerConstants extends BaseController
 
 	public function clearImported()
 	{
-		$this->checkToken('get') or die('Error Token');
+		$this->checkToken('get', false) or die('Error Token');
 
 		$file = $this->input->get('file', null, 'raw');
 

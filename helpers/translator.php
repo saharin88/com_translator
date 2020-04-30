@@ -241,7 +241,7 @@ class TranslatorHelper
 	{
 		if (LanguageHelper::saveToIniFile(self::getPath($file), $constants) === false)
 		{
-			Factory::getApplication()->enqueueMessage(Text::_('COM_TRANSLATOR_ERROR_SAVE_CONSTANTS_TO_LANGUAGE_FILE'), 'error');
+			Factory::getApplication()->enqueueMessage(Text::sprintf('COM_TRANSLATOR_ERROR_SAVE_CONSTANTS_TO_LANGUAGE_FILE', $file), 'error');
 
 			return false;
 		}

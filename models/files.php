@@ -73,6 +73,8 @@ class TranslatorModelFiles extends ListModel
 		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '');
 		$this->setState('filter.search', $search);
 
+		$this->setState('filter.compare', 0);
+
 		$app = Factory::getApplication();
 
 		$formSubmited = $app->input->post->get('form_submited');
@@ -80,7 +82,6 @@ class TranslatorModelFiles extends ListModel
 		if (!empty($formSubmited))
 		{
 			$filters = Factory::getApplication()->input->post->get('filter', [], 'array');
-
 			foreach ($filters as $key => $val)
 			{
 				$this->setState('filter.' . $key, $val);

@@ -29,6 +29,11 @@
                 onchange="this.form.submit();"
         />
 
+        <field
+                name="compare"
+                type="hidden"
+        />
+
     </fields>
 
 </form>

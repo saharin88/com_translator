@@ -29,10 +29,7 @@ class TranslatorControllerFile extends FormController
 
 	public function cancel($key = null)
 	{
-		if ($this->checkToken() === false)
-		{
-			die('Error Token');
-		}
+		$this->checkToken('post', false) or die('Error Token');
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
 
 		return true;
@@ -41,10 +38,7 @@ class TranslatorControllerFile extends FormController
 
 	public function save($key = null, $urlVar = null)
 	{
-		if ($this->checkToken() === false)
-		{
-			die('Error Token');
-		}
+		$this->checkToken('post', false) or die('Error Token');
 
 		$app   = Factory::getApplication();
 		$model = $this->getModel();
@@ -96,6 +90,16 @@ class TranslatorControllerFile extends FormController
 
 		return true;
 
+	}
+
+
+	public function reSave()
+	{
+		$this->checkToken('post', false) or die('Error Token');
+		$cid   = $this->input->get('cid', [], 'array');
+		$model = $this->getModel();
+		$model->reSave($cid);
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false))->redirect();
 	}
 
 }
