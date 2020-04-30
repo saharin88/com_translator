@@ -46,7 +46,6 @@ class TranslatorViewFiles extends HtmlView
 		ToolbarHelper::link('https://www.liqpay.ua/en/checkout/saharin88', 'Donate', 'heart');
 
 		ToolbarHelper::addNew('file.add');
-		ToolbarHelper::custom('file.reSafe', 'loop', '', Text::_('COM_TRANSLATOR_RE_SAVE'));
 		ToolbarHelper::preferences('com_translator');
 	}
 }

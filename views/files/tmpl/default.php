@@ -153,7 +153,7 @@ $doc->addStyleDeclaration($css);
 								?>
                                 <td class="center">
 									<?php
-									echo $countCompareConstants . ($diffConstants === false ? '' : ' <span class="hasTooltip diff-constants" title="' . implode('<br/>', array_keys($diffConstants)) . '">(' . count($diffConstants) . ')</span>');
+									echo $countCompareConstants . ($diffConstants === false ? '' : ' <span class="hasTooltip diff-constants text-error" title="' . implode('<br/>', array_keys($diffConstants)) . '">(' . count($diffConstants) . ')</span>');
 									?>
                                 </td>
 								<?php
