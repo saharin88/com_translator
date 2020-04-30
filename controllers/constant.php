@@ -8,10 +8,13 @@ use Joomla\CMS\
 	MVC\Controller\FormController,
 	Router\Route,
 	Factory,
+	Response\JsonResponse,
 };
 
 class TranslatorControllerConstant extends FormController
 {
+
+	protected $new_row = null;
 
 	protected $view_list = 'constants';
 
@@ -49,15 +52,7 @@ class TranslatorControllerConstant extends FormController
 				throw new Exception(Text::_('JLIB_APPLICATION_ERROR_CREATE_RECORD_NOT_PERMITTED'));
 			}
 
-			if (empty($file))
-			{
-				throw new Exception('Empty file');
-			}
-
-			if (!file_exists(TranslatorHelper::getPath($file)))
-			{
-				throw new Exception('File not exists');
-			}
+			TranslatorHelper::getPath($file);
 
 		}
 		catch (Exception $e)
@@ -106,6 +101,19 @@ class TranslatorControllerConstant extends FormController
 		$data    = $this->input->post->get('jform', array(), 'array');
 		$context = "$this->option.edit.$this->context";
 		$form    = $model->getForm($data, false);
+		$key     = $this->input->get->get('key', null, 'raw');
+		$file    = $this->input->get->get('file', null, 'raw');
+
+		try
+		{
+			TranslatorHelper::getPath($file);
+		}
+		catch (Exception $e)
+		{
+			$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=files'), $e->getMessage(), 'error');
+
+			return false;
+		}
 
 		if (!$form)
 		{
@@ -137,22 +145,13 @@ class TranslatorControllerConstant extends FormController
 			// Save the data in the session.
 			$app->setUserState($context . '.data', $data);
 
-			if (empty($validData['file']))
-			{
-				$url = 'index.php?option=' . $this->option . '&view=files';
-			}
-			else
-			{
-				if (empty($validData['row']))
-				{
+			$url = 'index.php?option=' . $this->option . '&view=' . $this->view_item . '&file=' . $file;
 
-					$url = 'index.php?option=' . $this->option . '&view=' . $this->view_list . '&file=' . $validData['file'];
-				}
-				else
-				{
-					$url = 'index.php?option=' . $this->option . '&view=' . $this->view_item . '&file=' . $validData['file'] . '&row=' . $validData['row'];
-				}
+			if (!empty($key))
+			{
+				$url .= '&key=' . $validData['key'];
 			}
+
 
 			$this->setRedirect(Route::_($url, false));
 
@@ -161,31 +160,35 @@ class TranslatorControllerConstant extends FormController
 
 		try
 		{
-			$model->save($validData);
+			$model->save($validData, $file);
 		}
 		catch (Exception $e)
 		{
 
-			$viewRedirect = ($e->getCode() ? 'view_item' : 'view_list');
+			$url = 'index.php?option=' . $this->option . '&file=' . $file;
 
-			$this->setRedirect(
-				Route::_(
-					'index.php?option=' . $this->option . '&view=' . $this->$viewRedirect . '&file=' . $validData['file'] . ($viewRedirect === 'view_item' ? (empty($validData['row']) ? '' : '&row=' . $validData['row']) : ''), false
-				), $e->getMessage()
-			);
+			if ($e->getCode() === 1)
+			{
+				$url .= '&view=' . $this->view_item . (empty($key) ? '' : '&key=' . $key);
+			}
+			else
+			{
+				$url .= '&view=' . $this->view_list;
+			}
 
+			$this->setRedirect(Route::_($url, false), $e->getMessage(), 'error');
+
+			return false;
 		}
 
-		if (empty($validData['row']))
+		if (empty($key))
 		{
 			$this->setMessage(Text::_('COM_TRANSLATOR_CONSTANT_ADDED'));
 		}
 		else
 		{
-			$this->setMessage(Text::_('COM_TRANSLATOR_CONSTANT_EDITED'));
+			$this->setMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_EDITED', $key));
 		}
-
-		$new_row = $model->getState('row');
 
 		$app->setUserState($context . '.data', null);
 
@@ -193,25 +196,14 @@ class TranslatorControllerConstant extends FormController
 
 		if ($task === 'apply')
 		{
-			$url .= '&view=' . $this->view_item . '&file=' . $validData['file'] . '&row=' . $new_row;
+			$url .= '&view=' . $this->view_item . '&file=' . $file . '&key=' . $key;
 		}
 		else
 		{
-			$url .= '&view=' . $this->view_list . '&file=' . $validData['file'];
+			$url .= '&view=' . $this->view_list . '&file=' . $file;
 		}
 
-		$this->setRedirect(
-			Route::_($url, false)
-		);
-
-		try
-		{
-			TranslatorHelper::sortFileConstants($validData['file']);
-		}
-		catch (Exception $e)
-		{
-			$this->setMessage($e->getMessage(), 'error');
-		}
+		$this->setRedirect(Route::_($url, false));
 
 		return true;
 
@@ -224,19 +216,26 @@ class TranslatorControllerConstant extends FormController
 			die('Error Token');
 		}
 
-		$data = $this->input->get('jform', array(), 'array');
+		$file = $this->input->get->get('file', null, 'raw');
 
-		if (empty($data['file']))
+		if (empty($file))
 		{
 			$url = 'index.php?option=' . $this->option . '&view=files';
 		}
 		else
 		{
-			$url = 'index.php?option=' . $this->option . '&view=' . $this->view_list . '&file=' . $data['file'];
+			$url = 'index.php?option=' . $this->option . '&view=' . $this->view_list . '&file=' . $file;
 		}
 
 		$this->setRedirect(Route::_($url, false));
 
+	}
+
+	public function saveAjax()
+	{
+		$result = $this->save();
+		$data   = $this->input->post->get('jform', array(), 'array');
+		exit(new JsonResponse($data, $this->message, !$result, false));
 	}
 
 }

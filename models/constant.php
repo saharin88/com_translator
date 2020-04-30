@@ -17,12 +17,13 @@ class TranslatorModelConstant extends FormModel
 	public function getForm($data = [], $loadData = true)
 	{
 		$form = $this->loadForm('com_translator.constant', 'constant', ['control' => 'jform', 'load_data' => $loadData]);
+
 		if (empty($form))
 		{
 			return false;
 		}
 
-		if (!empty($this->getState('row')))
+		if (!empty($this->getState('key')))
 		{
 			$form->setFieldAttribute('key', 'readonly', true);
 		}
@@ -30,88 +31,74 @@ class TranslatorModelConstant extends FormModel
 		return $form;
 	}
 
-	public function save($data)
+	public function save($data, ?string $file = null)
 	{
-
-		if (empty($data['file']))
-		{
-			throw new Exception('Empty file');
-		}
-
 		if (empty($data['key']))
 		{
 			throw new Exception('Empty constant key', 1);
 		}
 
-		$path = TranslatorHelper::getPath($data['file']);
-
-		if (!file_exists($path))
+		if (preg_match('/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*$/', $data['key']) !== 1)
 		{
-			throw new Exception('File not found');
+			throw new Exception(Text::_('COM_TRANSLATOR_BAD_CONSTANT_NAME'), 1);
 		}
 
-		$new_row = strtoupper($data['key']) . " = \"" . $data['value'] . "\"";
+		$data['key'] = strtoupper($data['key']);
 
-		$file_content = file_get_contents($path);
+		$file = empty($file) ? $this->getState('file') : $file;
+		$key  = $this->getState('key');
 
-		if (empty($data['row']))
+		$constants = TranslatorHelper::getConstants($file);
+
+		if (!empty($key))
 		{
-			if (mb_stripos($file_content, $data['key'] . ' =', 0, 'UTF-8') === false)
+			if ($key !== $data['key'])
 			{
-				if (File::append($path, "\r\n" . $new_row) === false)
-				{
-					throw new Exception('File not write');
-				}
+				throw new Exception(Text::_('COM_TRANSLATOR_YOU_CANNOT_CHANGE_CONSTANT_NAME'));
 			}
-			else
+
+			if (isset($constants[$data['key']]) === false)
 			{
-				throw new Exception(Text::sprintf('COM_TRANSLATOR_CONSTANT_ALREADY_EXISTS', $data['key']), 1);
+				throw new Exception(Text::_('COM_TRANSLATOR_CONSTANT_NOT_FOUND'));
 			}
 		}
-		else
-		{
-			$new_file_content = str_replace(TranslatorHelper::urlDecode($data['row']), $new_row, $file_content);
-			$result           = file_put_contents($path, $new_file_content);
-			if ($result === false)
-			{
-				throw new Exception('File not write');
-			}
-		}
-		$this->setState('row', TranslatorHelper::urlEncode($new_row));
+
+		$constants[$data['key']] = $data['value'];
+
+		TranslatorHelper::saveToIniFile($constants, $file);
 	}
 
 	public function delete(array $cid, ?string $file = null)
 	{
+		$app       = Factory::getApplication();
+		$file      = (isset($file) ? $file : $this->getState('file'));
+		$constants = TranslatorHelper::getConstants($file);
+		$success   = [];
 
-		$file = (isset($file) ? $file : $this->getState('file'));
-
-		if (empty($file))
+		foreach ($cid as $row)
 		{
-			throw new Exception('Empty file');
+			list('key' => $key, 'value' => $value) = TranslatorHelper::parseConstant($row);
+
+			if (isset($constants[$key]))
+			{
+				unset($constants[$key]);
+				$success[] = $key;
+			}
+			else
+			{
+				$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_DELETE_ERROR', $key, Text::_('COM_TRANSLATOR_CONSTANT_NOT_FOUND')), 'error');
+			}
 		}
 
-		$path = TranslatorHelper::getPath($file);
-
-		if (file_exists($path) === false)
+		if (count($success))
 		{
-			throw new Exception('File not exists');
-		}
-
-		$rows = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-		$delete_rows = [];
-		foreach ($cid as $val)
-		{
-			$delete_rows[] = urldecode($val);
-		}
-
-		$new_rows = array_diff($rows, $delete_rows);
-
-		$result = file_put_contents($path, implode("\r\n", $new_rows));
-
-		if ($result === false)
-		{
-			throw new Exception('Could not write data to file');
+			if (TranslatorHelper::saveToIniFile($constants, $file))
+			{
+				foreach ($success as $key)
+				{
+					$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_DELETE_SUCCESS', $key));
+				}
+			}
 		}
 	}
 
@@ -130,16 +117,26 @@ class TranslatorModelConstant extends FormModel
 
 	public function getItem()
 	{
-		$item = array(
-			'row'  => TranslatorHelper::urlEncode($this->getState('row')),
-			'file' => $this->getState('file')
-		);
+		$item = [
+			'key'   => null,
+			'value' => null,
+		];
 
-		if (!empty($item['row']))
+		$file = $this->getState('file');
+		$key  = $this->getState('key');
+
+		if (!empty($key))
 		{
-			$constant      = explode('=', urldecode($item['row']));
-			$item['key']   = trim($constant[0]);
-			$item['value'] = mb_substr(trim($constant[1]), 1, -1, 'UTF-8');
+			$constants = TranslatorHelper::getConstants($file);
+			if (isset($constants[$key]))
+			{
+				$item['key']   = $key;
+				$item['value'] = $constants[$key];
+			}
+			else
+			{
+				throw new Exception(Text::sprintf('COM_TRANSLATOR_CONSTANT_NOT_FOUND', $key));
+			}
 		}
 
 		return $item;
@@ -148,12 +145,21 @@ class TranslatorModelConstant extends FormModel
 	protected function populateState()
 	{
 		$app = Factory::getApplication();
-		$this->setState('row', $app->input->get('row', null, 'raw'));
+
+		// set state key
+		$key = $app->input->get->get('key', null, 'raw');
+		if (!empty($key))
+		{
+			$key = strtoupper($key);
+		}
+		$this->setState('key', $key);
+
+		// set state file
 		$this->setState('file', $app->input->get('file', null, 'raw'));
 	}
 
 
-	public function translateByGoogle(array $rows, array $translate, string $file)
+	public function translateByGoogle(array $keys, array $translate, string $file)
 	{
 
 		$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($translate['google']['client'])));
@@ -199,15 +205,18 @@ class TranslatorModelConstant extends FormModel
 
 		$app = Factory::getApplication();
 
-		foreach ($rows AS $row)
+		$constants = TranslatorHelper::getConstants($file);
+
+		foreach ($keys AS $key)
 		{
 
-			$constant = explode('=', TranslatorHelper::urlDecode($row));
+			if (isset($constants[$key]) === false)
+			{
+				$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_NOT_FOUND', $key), 'error');
+				continue;
+			}
 
-			$key  = trim($constant[0]);
-			$text = mb_substr(trim($constant[1]), 1, -1, 'UTF-8');
-
-			$result = TranslatorHelper::translateByGoogle($source, $target, $text, $attempts);
+			$result = TranslatorHelper::translateByGoogle($source, $target, $constants[$key], $attempts);
 
 			if (empty($result))
 			{
@@ -218,10 +227,8 @@ class TranslatorModelConstant extends FormModel
 			try
 			{
 				$this->save([
-					'file'  => $file,
 					'key'   => $key,
-					'value' => $result,
-					'row'   => $row,
+					'value' => $result
 				]);
 
 				$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_TRANSLATE_CONSTANT_SUCCESS', $key));
@@ -233,6 +240,73 @@ class TranslatorModelConstant extends FormModel
 
 		}
 
+	}
+
+	/**
+	 * Import constants
+	 *
+	 * @param array  $keys
+	 * @param string $file
+	 * @param string $from_file
+	 *
+	 *
+	 * @throws Exception
+	 * @since version
+	 */
+	public function import(array $keys, string $file, string $from_file)
+	{
+		$app       = Factory::getApplication();
+		$constants = TranslatorHelper::getConstants($file);
+		$imported  = TranslatorHelper::getConstants($from_file);
+		$success   = [];
+
+		foreach ($keys as $key)
+		{
+			if (isset($imported[$key]))
+			{
+				if (isset($constants[$key]))
+				{
+					$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANTA_ALREADY_EXIST', $key), 'error');
+				}
+				else
+				{
+					$constants[$key] = $imported[$key];
+					$success[]       = $key;
+				}
+			}
+			else
+			{
+				$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_NOT_FOUND', $key), 'error');
+			}
+		}
+
+		$success_count = count($success);
+
+		if ($success_count)
+		{
+			if (TranslatorHelper::saveToIniFile($constants, $file))
+			{
+
+				$session  = Factory::getSession();
+				$imported = array_merge($session->get($file, [], 'com_translator.imported'), $success);
+				$session->set($file, $imported, 'com_translator.imported');
+
+				foreach ($success as $i => $key)
+				{
+					if ($i === 10)
+					{
+						break;
+					}
+					$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_IMPORT_SUCCESS', $key));
+				}
+
+				if ($success_count > 10)
+				{
+					$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_MANY_MESSAGES', $success_count));
+				}
+			}
+
+		}
 	}
 
 

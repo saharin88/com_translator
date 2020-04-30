@@ -12,22 +12,12 @@
 
         <field
                 name="value"
-                type="textarea"
+                type="editor"
                 required="true"
                 label="COM_TRANSLATOR_CONSTANT_VALUE"
-                filter="raw"
+                filter="safehtml"
                 class="input-xxlarge input-large-text"
-        />
-
-        <field
-                name="row"
-                type="hidden"
-        />
-
-        <field
-                name="file"
-                type="hidden"
-                required="true"
+                editor="codemirror|none"
         />
 
     </fieldset>

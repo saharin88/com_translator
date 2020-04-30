@@ -19,13 +19,17 @@ class TranslatorViewConstants extends HtmlView
 	public $activeFilters;
 
 	/**
-	 * @var JObject
+	 * @var Joomla\CMS\Object\CMSObject
 	 * @since version
 	 */
 	public $state;
+
 	public $filterForm;
+
 	public $googleForm;
+
 	public $to_file;
+
 	public $items;
 
 	public function display($tpl = null)
@@ -83,8 +87,9 @@ class TranslatorViewConstants extends HtmlView
 
 		ToolbarHelper::title(Text::sprintf('COM_TRANSLATOR_LANGUAGE_FILE_S', str_replace(':', '/', $this->state->get('file'))), 'file-2');
 
-		Factory::getDocument()->addStyleDeclaration('#toolbar-heart {float:right;}');
+		$doc->addStyleDeclaration('#toolbar-heart {float:right;}');
 		ToolbarHelper::link('https://www.liqpay.ua/en/checkout/saharin88', 'Donate', 'heart');
+
 
 		if ($this->getLayout() === 'default')
 		{

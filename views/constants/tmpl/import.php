@@ -7,14 +7,16 @@ use Joomla\CMS\
 	Language\Text,
 	Router\Route,
 	HTML\HTMLHelper,
-	Layout\LayoutHelper,
 	Factory,
 };
 
 HTMLHelper::_('behavior.core');
+
+$input = Factory::getApplication()->input;
+
 ?>
 
-<form action="<?= Route::_('index.php?option=com_translator&task=constants.import&file=' . $this->to_file, false) ?>" method="post"
+<form action="<?= Route::_('index.php?option=com_translator&task=constants.import', false) ?>" method="post"
       name="importForm" id="importForm">
 
     <div id="j-main-container">
@@ -66,13 +68,12 @@ HTMLHelper::_('behavior.core');
 				foreach ($this->items AS $key => $val)
 				{
 					$i++;
-					$row = strtoupper($key) . " = \"" . $val . "\"";
 					?>
 
                     <tr class="row<?php echo $i % 2; ?>">
 
                         <td class="center">
-							<?= HTMLHelper::_('grid.id', $i, urlencode($row)) ?>
+							<?= HTMLHelper::_('grid.id', $i, $key) ?>
                         </td>
 
                         <td class="center">
@@ -101,6 +102,9 @@ HTMLHelper::_('behavior.core');
 
         <input type="hidden" name="boxchecked" value="0">
 		<?= HTMLHelper::_('form.token') ?>
+
+        <input type="hidden" name="file" value="<?= $input->get->get('to_file', null, 'raw') ?>">
+        <input type="hidden" name="from_file" value="<?= $input->get->get('file', null, 'raw') ?>">
 
     </div>
 

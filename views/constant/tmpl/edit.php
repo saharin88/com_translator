@@ -18,9 +18,9 @@ $doc = Factory::getDocument();
 $doc->addScriptDeclaration('
 	Joomla.submitbutton = function(task)
 	{
-		if (task == "constant.cancel" || document.formvalidator.isValid(document.getElementById("adminForm")))
+		if (task == "constant.cancel" || document.formvalidator.isValid(document.getElementById("constantForm")))
 		{
-			Joomla.submitform(task, document.getElementById("adminForm"));
+			Joomla.submitform(task, document.getElementById("constantForm"));
 		}
 	};
 ');
@@ -28,7 +28,7 @@ $doc->addScriptDeclaration('
 ?>
 
 
-<form action="<?= Route::_('index.php?option=com_translator&layout=edit', 'false') ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
+<form action="<?= Route::_('index.php?option=com_translator&file=' . $this->state->get('file') . (empty($this->state->get('key')) ? '' : '&key=' . $this->state->get('key')), 'false') ?>" method="post" name="constantForm" id="constantForm" class="form-validate">
 
     <div class="form-horizontal">
 
@@ -48,7 +48,7 @@ $doc->addScriptDeclaration('
 	if (Factory::getApplication()->input->get->getString('tmpl') === 'component')
 	{
 		?>
-        <input type="hidden" name="task" value="constant.save">
+        <input type="hidden" name="task" value="constant.save<?= (empty(Factory::getApplication()->input->get->get('ajax')) ? '' : 'Ajax') ?>">
         <button type="submit" class="btn button-new btn-success"><?= Text::_('JSAVE') ?></button>
 		<?php
 	}

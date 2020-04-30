@@ -9,11 +9,13 @@ use Joomla\CMS\
 	HTML\HTMLHelper,
 	Layout\LayoutHelper,
 	Factory,
+	Session\Session
 };
 
 HTMLHelper::_('behavior.core');
 HTMLHelper::_('behavior.modal', 'a.modal', ['size' => ['x' => '730', 'y' => '180']]);
 Text::script('COM_TRANSLATOR_REMOVE_CONFIRM');
+Text::script('JERROR_AN_ERROR_HAS_OCCURRED');
 
 $doc = Factory::getDocument();
 
@@ -30,10 +32,98 @@ $css = <<< CSS
     position: fixed;
     z-index: 1000;
 }
+
+.imported-color {
+    background-color: rgb(223, 240, 216);
+    width: 14px;
+    height: 14px;
+    display: block;
+    float: left;
+    margin: 2px 5px 0 0;
+}
+
+.clearImported {
+    margin-left: 5px;
+    text-transform: lowercase;
+}
+
+.clearImported:after {
+    content: ')';
+}
+
+.clearImported:before {
+    content: '(';
+}
+
+input[name="checkAllImported"] {
+    float: left;
+    margin: 2px 10px 0 0;
+    background-color: rgb(223, 240, 216);
+}
 CSS;
 
 
 $js = <<< JS
+
+jQuery(document).ready(function($) {
+    
+    $('input[name="checkAllImported"]').on('click', function(e) {
+        
+        let boxchecked = $('table#constantList').siblings('input[name="boxchecked"]'),
+            totalChecked = parseInt(boxchecked.val()),
+            imported = $('tr.success', 'table#constantList').find('input[type="checkbox"]'),
+            checked = $(this).is(':checked');
+        
+        imported.prop('checked', checked);
+        
+        imported.each(function() {
+            this.checked = checked;
+        });
+        
+        if(checked)  {
+            totalChecked +=imported.length;
+        } else {
+            totalChecked -=imported.length;
+        }
+        
+        boxchecked.val(totalChecked)
+        
+    });
+    
+    $('body').on('submit', 'form#constantForm', function(e) {
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let _form = $(this);
+        
+        $.ajax({
+            url: _form.attr('action'),
+            data: _form.serializeArray(),
+            method: 'POST',
+            dataType: 'json',
+            success: function(resp) {
+                if(resp.success) {
+                    $('span.' + resp.data.key.toLowerCase()).html(resp.data.value);
+                    Joomla.renderMessages({"message" : [resp.message]});
+                } else {
+                    Joomla.renderMessages({"error" : [resp.message]});
+                }
+                
+                if(resp.messages) {
+                    Joomla.renderMessages(resp.messages);
+                }
+                jModalClose();
+            },
+            error: function() {
+                Joomla.renderMessages({"error" : [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')]});
+                jModalClose();
+            }
+        });
+        
+    });
+    
+});
 
 Joomla.submitbutton = function (task) {
 
@@ -83,8 +173,11 @@ JS;
 $doc->addStyleDeclaration($css);
 $doc->addScriptDeclaration($js);
 
-$app  = Factory::getApplication();
-$file = $this->state->get('file', $app->input->get('file', null, 'raw'));
+$app      = Factory::getApplication();
+$file     = $this->state->get('file', $app->input->get('file', null, 'raw'));
+$imported = Factory::getSession()->get($file, [], 'com_translator.imported');
+
+$search = $this->state->get('filter.search');
 
 ?>
 
@@ -98,14 +191,21 @@ $file = $this->state->get('file', $app->input->get('file', null, 'raw'));
 		if (empty($this->items))
 		{
 			?>
-            <div class="alert alert-no-items"><?= Text::_('COM_TRANSLATOR_NO_CONSTANTS_IN_FILE') ?></div>
+            <div class="alert alert-no-items"><?= Text::_(empty($search) ? 'COM_TRANSLATOR_NO_CONSTANTS_IN_FILE' : 'COM_TRANSLATOR_NO_CONSTANTS_FOUND') ?></div>
 			<?php
 		}
 		else
 		{
 			?>
 
-            <table class="table table-striped" id="overrideList">
+            <div>
+                <div class="pull-right"><span class="imported-color"></span> - <?= Text::_('COM_TRANSLATOR_IMPORTED') . HTMLHelper::_('link', Route::_('index.php?option=com_translator&task=constants.clearImported&file=' . $file . '&' . Session::getFormToken() . '=1', false), Text::_('JCLEAR'), ['class' => 'clearImported']) ?></div>
+                <div class="pull-right">
+                    <input type="checkbox" name="checkAllImported" title="<?= Text::_('COM_TRANSLATOR_CHECK_ALL_IMPORTED') ?>" class="hasTooltip">
+                </div>
+            </div>
+
+            <table class="table table-striped" id="constantList">
                 <thead>
                 <tr>
 
@@ -133,13 +233,20 @@ $file = $this->state->get('file', $app->input->get('file', null, 'raw'));
 				foreach ($this->items AS $key => $val)
 				{
 					$i++;
-					$row = urlencode(strtoupper($key) . " = \"" . $val . "\"");
+					if (in_array($key, $imported))
+					{
+						$markImported = true;
+					}
+					else
+					{
+						$markImported = false;
+					}
 					?>
 
-                    <tr class="row<?php echo $i % 2; ?>">
+                    <tr class="row<?= ($i % 2) . ($markImported ? ' success' : '') ?>">
 
                         <td class="center">
-							<?= HTMLHelper::_('grid.id', $i, $row) ?>
+							<?= HTMLHelper::_('grid.id', $i, $key) ?>
                         </td>
 
                         <td class="center">
@@ -147,11 +254,11 @@ $file = $this->state->get('file', $app->input->get('file', null, 'raw'));
                         </td>
 
                         <td>
-							<?= HTMLHelper::link(Route::_('index.php?option=com_translator&view=constant&row=' . $row . '&file=' . $file, false), $key) ?>
+							<?= HTMLHelper::link(Route::_('index.php?option=com_translator&view=constant&key=' . $key . '&file=' . $file, false), $key, ['class' => strtolower($key)]) ?>
                         </td>
 
                         <td class="center">
-							<?= $val ?> <a class="modal" href="<?= Route::_('index.php?option=com_translator&view=constant&tmpl=component&row=' . $row . '&file=' . $file, false) ?>"><span class="icon-pencil small"> </span></a>
+                            <span class="<?= strtolower($key) ?>"><?= $val ?></span> <a class="modal" href="<?= Route::_('index.php?option=com_translator&view=constant&tmpl=component&key=' . $key . '&file=' . $file . '&ajax=1', false) ?>"><span class="icon-pencil small"> </span></a>
                         </td>
 
                     </tr>

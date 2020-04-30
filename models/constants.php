@@ -15,20 +15,18 @@ use Joomla\CMS\
 class TranslatorModelConstants extends ListModel
 {
 
-	protected $cache = [];
-
 	public function getItems(?string $file = null)
 	{
 		$file = (isset($file) ? $file : $this->getState('file'));
 
-		$constants = TranslatorHelper::sortFileConstants($file);
+		$constants = TranslatorHelper::getConstants($file);
 
-		$search    = $this->getState('filter.search');
+		$search = $this->getState('filter.search');
 		if (!empty($search))
 		{
 			foreach ($constants as $key => $val)
 			{
-				if (mb_stristr($key, $search, false, 'UTF-8') === false || mb_stristr($val, $search, false, 'UTF-8') === false)
+				if (mb_stristr($key, $search, false, 'UTF-8') === false && mb_stristr($val, $search, false, 'UTF-8') === false)
 				{
 					unset($constants[$key]);
 				}

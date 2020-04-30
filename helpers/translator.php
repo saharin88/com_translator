@@ -9,10 +9,14 @@ use Joomla\CMS\
 {
 	Factory,
 	Component\ComponentHelper,
+	Language\LanguageHelper,
+	Language\Text,
 };
 
 class TranslatorHelper
 {
+
+	protected static $constants = [];
 
 	protected static $path = [];
 
@@ -140,19 +144,48 @@ class TranslatorHelper
 		}
 	}
 
+	/**
+	 * @param string $str
+	 *
+	 * @return array
+	 *
+	 * @since version
+	 */
+	public static function parseConstant(string $str)
+	{
+		$constant = explode('=', self::urlDecode($str));
+
+		return [
+			'key'   => trim($constant[0]),
+			'value' => (empty($constant[1]) ? '' : mb_substr(trim($constant[1]), 1, -1, 'UTF-8'))
+		];
+	}
+
 	public static function getPath(?string $file = null)
 	{
 		$file = (isset($file) ? $file : Factory::getApplication()->input->get('file', null, 'raw'));
 
 		if (empty($file))
 		{
-			throw new Exception('Empty file');
+			throw new Exception(Text::sprintf('COM_TRANSLATOR_ERROR_GET_PATH', Text::_('COM_TRANSLATOR_MISSING_FILE')));
 		}
 
 		if (isset(self::$path[$file]) === false)
 		{
+			$fileExpl = explode(':', $file);
 
-			list($client, $filename) = explode(':', $file);
+			if ($fileExpl[0] !== 'administrator' && $fileExpl[0] !== 'site')
+			{
+				throw new Exception(Text::sprintf('COM_TRANSLATOR_ERROR_GET_PATH', Text::_('COM_TRANSLATOR_UNKNOWN_CLIENT')));
+			}
+
+			if (empty($fileExpl[1]))
+			{
+				throw new Exception(Text::sprintf('COM_TRANSLATOR_ERROR_GET_PATH', Text::_('COM_TRANSLATOR_FILENAME_EMPTY')));
+			}
+
+			$client   = $fileExpl[0];
+			$filename = $fileExpl[1];
 
 			$language = mb_stristr($filename, '.', true, 'UTF-8');
 
@@ -160,8 +193,7 @@ class TranslatorHelper
 
 			if (file_exists($path) === false)
 			{
-
-				throw new Exception('File not exists');
+				throw new Exception(Text::sprintf('COM_TRANSLATOR_ERROR_GET_PATH', Text::_('COM_TRANSLATOR_FILE_NOT_EXISTS')));
 			}
 
 			self::$path[$file] = $path;
@@ -170,65 +202,54 @@ class TranslatorHelper
 		return self::$path[$file];
 	}
 
-	public static function sortFileConstants(string $file)
+	/**
+	 * Get language constants by file
+	 *
+	 * @param string $file
+	 * @param int    $save
+	 *
+	 * @return array
+	 *
+	 * @throws Exception
+	 * @since version
+	 */
+	public static function getConstants(string $file)
 	{
-
-		$path = self::getPath($file);
-
-		if (file_exists($path) === false)
+		if (isset(self::$constants[$file]) === false)
 		{
-			throw new Exception('File not exists');
-		}
-
-		$rows = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-		if ($rows === false)
-		{
-			throw new Exception('Error get file rows');
-		}
-
-		if (count($rows))
-		{
-
-			$constants = [];
-
-			foreach ($rows as $row)
-			{
-				if (mb_substr($row, 0, 1, 'UTF-8') === ';')
-				{
-					continue;
-				}
-				list($key, $val) = explode('=', $row);
-				if (!empty($key) && !empty($val))
-				{
-					$constants[trim($key)] = mb_substr(trim($val), 1, -1, 'UTF-8');
-				}
-			}
-
+			$path      = self::getPath($file);
+			$constants = LanguageHelper::parseIniFile($path);
 			ksort($constants);
-
-			$sorted_rows = [];
-
-			foreach ($constants AS $key => $val)
-			{
-				$sorted_rows[] = strtoupper($key) . " = \"" . $val . "\"";
-			}
-
-			if (file_put_contents($path, implode("\r\n", $sorted_rows)) === false)
-			{
-				throw new Exception('File put sorted constants error');
-			}
-			else
-			{
-				return $constants;
-			}
-
-		}
-		else
-		{
-			return [];
+			self::$constants[$file] = $constants;
 		}
 
+		return self::$constants[$file];
 	}
+
+	/**
+	 * Save constants to a language file.
+	 *
+	 * @param array  $constants
+	 * @param string $file
+	 *
+	 * @return bool
+	 *
+	 * @throws Exception
+	 * @since version
+	 */
+	public static function saveToIniFile(array $constants, string $file)
+	{
+		if (LanguageHelper::saveToIniFile(self::getPath($file), $constants) === false)
+		{
+			Factory::getApplication()->enqueueMessage(Text::_('COM_TRANSLATOR_ERROR_SAVE_CONSTANTS_TO_LANGUAGE_FILE'), 'error');
+
+			return false;
+		}
+
+		self::$constants[$file] = $constants;
+
+		return true;
+	}
+
 
 }
