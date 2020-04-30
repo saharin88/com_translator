@@ -12,6 +12,8 @@ use Joomla\CMS\
 	Language\LanguageHelper,
 };
 
+HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+
 if ($this->state->get('filter.compare'))
 {
 	$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($this->state->get('filter.client', 'site'))));
