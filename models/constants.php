@@ -38,30 +38,46 @@ class TranslatorModelConstants extends ListModel
 
 	public function getOtherLangs()
 	{
-		$file = $this->getState('file', Factory::getApplication()->input->get('file', null, 'raw'));
-		$path = $this->getPath($file);
+		$result    = [];
+		$file      = $this->getState('file');
+		$extension = TranslatorHelper::getExtension($file);
 
-		$extension = TranslatorHelper::getExtByPath($path);
-		/** @var TranslatorModelFiles $filesModel */
-		$filesModel = BaseDatabaseModel::getInstance('Files', 'TranslatorModel', array('ignore_request' => true));
-		$filesModel->setState('filter.search', $extension);
-		$result = [];
-		foreach (['site', 'administrator'] AS $client)
+		if ($extension === false)
 		{
+			list($client,) = explode(':', $this->getState('file'));
 			$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($client)));
-
-			$filesModel->setState('filter.client', $client);
 			foreach ($languages as $tag => $language)
 			{
-				$filesModel->setState('filter.language', $tag);
-				$files = $filesModel->getFiles();
-				if (!empty($files))
+				$filename                          = $tag . '.ini';
+				$result[$client . ':' . $filename] = Text::sprintf('COM_TRANSLATOR_VIEW_LANGUAGES_BOX_ITEM', $filename, Text::_('J' . $client));
+			}
+		}
+		else
+		{
+			/** @var TranslatorModelFiles $filesModel */
+			$filesModel = BaseDatabaseModel::getInstance('Files', 'TranslatorModel', array('ignore_request' => true));
+			$filesModel->setState('filter.search', $extension);
+
+			foreach (['site', 'administrator'] AS $client)
+			{
+				$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($client)));
+				$filesModel->setState('filter.client', $client);
+				foreach ($languages as $tag => $language)
 				{
-					foreach ($files as $filename)
+					$filesModel->setState('filter.language', $tag);
+					$files = $filesModel->getFiles();
+					if (!empty($files))
 					{
-						$result[$client . ':' . $filename] = Text::sprintf('COM_TRANSLATOR_VIEW_LANGUAGES_BOX_ITEM', $filename, Text::_('J' . $client));
+						foreach ($files as $filename)
+						{
+							if (TranslatorHelper::getExtension($filename) === $extension)
+							{
+								$result[$client . ':' . $filename] = Text::sprintf('COM_TRANSLATOR_VIEW_LANGUAGES_BOX_ITEM', $filename, Text::_('J' . $client));
+							}
+						}
 					}
 				}
+
 			}
 		}
 

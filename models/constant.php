@@ -73,17 +73,15 @@ class TranslatorModelConstant extends FormModel
 		TranslatorHelper::saveToIniFile($constants, $file);
 	}
 
-	public function delete(array $cid, ?string $file = null)
+	public function delete(array $keys, ?string $file = null)
 	{
 		$app       = Factory::getApplication();
 		$file      = (isset($file) ? $file : $this->getState('file'));
 		$constants = TranslatorHelper::getConstants($file);
 		$success   = [];
 
-		foreach ($cid as $row)
+		foreach ($keys as $key)
 		{
-			list('key' => $key, 'value' => $value) = TranslatorHelper::parseConstant($row);
-
 			if (isset($constants[$key]))
 			{
 				unset($constants[$key]);

@@ -52,113 +52,32 @@ class TranslatorHelper
 		return ComponentHelper::getParams('com_translator');
 	}
 
-	public static function getExtByPath($path)
+	public static function getExtension(string $file)
 	{
-		if (self::checkUrlEncode($path))
-		{
-			$path = urldecode($path);
-		}
-		if (!file_exists($path))
-		{
-			throw new Exception('File does not exist by this path');
-		}
-		$path_segments     = explode('/', $path);
-		$filename          = end($path_segments);
-		$filename_segments = explode('.', $filename);
+		$fileExpl = explode(':', $file);
 
-		return $filename_segments[1];
-	}
-
-	public static function getLangByPath($path)
-	{
-		if (self::checkUrlEncode($path))
+		if (!empty($fileExpl[1]))
 		{
-			$path = urldecode($path);
-		}
-		if (!file_exists($path))
-		{
-			throw new Exception('File does not exist by this path');
-		}
-		$path_segments     = explode('/', $path);
-		$filename          = end($path_segments);
-		$filename_segments = explode('.', $filename);
-
-		return $filename_segments[0];
-	}
-
-
-	/**
-	 * @param string $str
-	 *
-	 * @return bool
-	 *
-	 * @since version
-	 */
-	public static function checkUrlEncode(string $str)
-	{
-		if (urlencode(urldecode($str)) === $str)
-		{
-			return true;
+			$filename = $fileExpl[1];
 		}
 		else
+		{
+			$filename = $fileExpl[0];
+		}
+
+		$filename = str_replace('.sys', '', $filename);
+		$filename = str_replace('.ini', '', $filename);
+
+		$fileExpl = explode('.', $filename);
+
+		if(empty($fileExpl[1]))
 		{
 			return false;
 		}
-	}
-
-	/**
-	 * @param string $str
-	 *
-	 * @return string
-	 *
-	 * @since version
-	 */
-	public static function urlEncode(string $str)
-	{
-		if (self::checkUrlEncode($str))
-		{
-			return $str;
-		}
 		else
 		{
-			return urlencode($str);
+			return $fileExpl[1];
 		}
-	}
-
-	/**
-	 * @param string $str
-	 *
-	 * @return string
-	 *
-	 * @since version
-	 */
-	public static function urlDecode(string $str)
-	{
-		if (self::checkUrlEncode($str))
-		{
-			return urldecode($str);
-		}
-		else
-		{
-			return $str;
-		}
-	}
-
-	/**
-	 * @param string $str
-	 *
-	 * @return array
-	 *
-	 * @since version
-	 */
-	public static function parseConstant(string $str)
-	{
-		$constant = explode('=', self::urlDecode($str));
-
-		return [
-			'key'   => trim($constant[0]),
-			'value' => (empty($constant[1]) ? '' : mb_substr(trim($constant[1]), 1, -1, 'UTF-8'))
-		];
 	}
 
 	public static function getPath(?string $file = null)
