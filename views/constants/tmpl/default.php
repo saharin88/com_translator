@@ -14,6 +14,7 @@ use Joomla\CMS\
 
 HTMLHelper::_('behavior.core');
 HTMLHelper::_('behavior.modal', 'a.modal', ['size' => ['x' => '730', 'y' => '180']]);
+HTMLHelper::_('form.csrf');
 Text::script('COM_TRANSLATOR_REMOVE_CONFIRM');
 Text::script('JERROR_AN_ERROR_HAS_OCCURRED');
 
@@ -59,6 +60,15 @@ input[name="checkAllImported"] {
     float: left;
     margin: 2px 10px 0 0;
     background-color: rgb(223, 240, 216);
+}
+
+.togglers {
+    padding: 0 8px;
+    margin: 20px 0 15px;
+}
+
+div[contenteditable] {
+    white-space: pre-wrap;
 }
 CSS;
 
@@ -109,7 +119,6 @@ jQuery(document).ready(function($) {
                 } else {
                     Joomla.renderMessages({"error" : [resp.message]});
                 }
-                
                 if(resp.messages) {
                     Joomla.renderMessages(resp.messages);
                 }
@@ -120,6 +129,69 @@ jQuery(document).ready(function($) {
                 jModalClose();
             }
         });
+        
+    });
+    
+    $('#checkboxEditMode').on('click', function(e) {
+        if($(this).is(':checked')) {
+            $('#editMode').val('1');
+        } else {
+            $('#editMode').val('0');
+        }
+        this.form.submit();
+    });
+    
+    let timeouts = {};
+    
+    $('div[contenteditable]').each(function() {
+        $(this).data('oldValue', $(this).html());
+    }).keydown(function(e) {
+        if (e.keyCode === 13) {
+          window.document.execCommand('insertHTML', false, "\\n");
+          return false;
+        }
+    }).on('input', function(e) {
+        
+        let el = $(this),
+            key = el.data('key'),
+            file = el.data('file'),
+            value = el.html(),
+            data = {
+                'jform': {
+                    'key': key,
+                    'value': value
+                },
+            };
+        
+        clearTimeout(timeouts[key]);
+        
+        data[Joomla.getOptions('csrf.token')] = 1;
+        
+        timeouts[key] = setTimeout(function() {
+            $.ajax({
+                url: '//' + location.host + '/administrator/index.php?option=com_translator&task=constant.saveAjax&key=' + key + '&file=' + file,
+                data: data,
+                method: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function(resp) {
+                    if(resp.success) {
+                        Joomla.renderMessages({"message" : [resp.message]});
+                        el.data('oldValue', value);
+                    } else {
+                        Joomla.renderMessages({"error" : [resp.message]});
+                        el.html(el.data('oldValue'));
+                    }
+                    if(resp.messages) {
+                        Joomla.renderMessages(resp.messages);
+                    }
+                },
+                error: function() {
+                    Joomla.renderMessages({"error" : [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')]});
+                        el.html(el.data('oldValue'));
+                }
+            });
+        }, 5000);
         
     });
     
@@ -179,6 +251,8 @@ $imported = Factory::getSession()->get($file, [], 'com_translator.imported');
 
 $search = $this->state->get('filter.search');
 
+$editMode = $this->state->get('edit_mode', '0');
+
 ?>
 
 <form action="<?= Route::_('index.php?option=com_translator&view=constants&file=' . $file, false) ?>" method="post" name="adminForm" id="adminForm">
@@ -198,11 +272,22 @@ $search = $this->state->get('filter.search');
 		{
 			?>
 
-            <div>
-                <div class="pull-right"><span class="imported-color"></span> - <?= Text::_('COM_TRANSLATOR_IMPORTED') . HTMLHelper::_('link', Route::_('index.php?option=com_translator&task=constants.clearImported&file=' . $file . '&' . Session::getFormToken() . '=1', false), Text::_('JCLEAR'), ['class' => 'clearImported']) ?></div>
+            <div class="togglers clearfix">
+
                 <div class="pull-right">
-                    <input type="checkbox" name="checkAllImported" title="<?= Text::_('COM_TRANSLATOR_CHECK_ALL_IMPORTED') ?>" class="hasTooltip">
+                    <label class="checkbox pull-right">
+                        <input type="hidden" name="edit_mode" value="0" id="editMode">
+                        <input type="checkbox" id="checkboxEditMode"<?= ($editMode ? ' checked' : '') ?>> <?= Text::_('COM_TRANSLATOR_EDIT_MODE') ?>
+                    </label>
                 </div>
+
+                <div class="pull-left">
+                    <div class="pull-right"><span class="imported-color"></span> - <?= Text::_('COM_TRANSLATOR_IMPORTED') . HTMLHelper::_('link', Route::_('index.php?option=com_translator&task=constants.clearImported&file=' . $file . '&' . Session::getFormToken() . '=1', false), Text::_('JCLEAR'), ['class' => 'clearImported']) ?></div>
+                    <div class="pull-right">
+                        <input type="checkbox" name="checkAllImported" title="<?= Text::_('COM_TRANSLATOR_CHECK_ALL_IMPORTED') ?>" class="hasTooltip">
+                    </div>
+                </div>
+
             </div>
 
             <table class="table table-striped" id="constantList">
@@ -258,7 +343,20 @@ $search = $this->state->get('filter.search');
                         </td>
 
                         <td class="center">
-                            <span class="<?= strtolower($key) ?>"><?= $val ?></span> <a class="modal" href="<?= Route::_('index.php?option=com_translator&view=constant&tmpl=component&key=' . $key . '&file=' . $file . '&ajax=1', false) ?>"><span class="icon-pencil small"> </span></a>
+							<?php
+							if ($editMode)
+							{
+								?>
+                                <div data-key="<?= $key ?>" data-file="<?= $file ?>" contenteditable="true"><?= $val ?></div>
+								<?php
+							}
+							else
+							{
+								?>
+                                <span class="<?= strtolower($key) ?>"><?= $val ?></span> <a class="modal" href="<?= Route::_('index.php?option=com_translator&view=constant&tmpl=component&key=' . $key . '&file=' . $file . '&ajax=1', false) ?>"><span class="icon-pencil small"> </span></a>
+								<?php
+							}
+							?>
                         </td>
 
                     </tr>

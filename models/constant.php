@@ -28,9 +28,9 @@ class TranslatorModelConstant extends FormModel
 			$form->setFieldAttribute('key', 'readonly', true);
 		}
 
-		if(Factory::getApplication()->input->get->getBool('ajax', false))
+		if (Factory::getApplication()->input->get->getBool('ajax', false))
 		{
-			$form->setFieldAttribute('value','type', 'textarea');
+			$form->setFieldAttribute('value', 'type', 'textarea');
 		}
 
 		return $form;
@@ -68,7 +68,7 @@ class TranslatorModelConstant extends FormModel
 			}
 		}
 
-		$constants[$data['key']] = $data['value'];
+		$constants[$data['key']] = preg_replace("/\\n/m", "<br />", $data['value']);
 
 		TranslatorHelper::saveToIniFile($constants, $file);
 	}

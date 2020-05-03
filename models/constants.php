@@ -100,6 +100,9 @@ class TranslatorModelConstants extends ListModel
 		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '');
 		$this->setState('filter.search', $search);
 
+		$editMode = $this->getUserStateFromRequest($this->context . '.edit_mode', 'edit_mode', 0);
+		$this->setState('edit_mode', $editMode);
+
 	}
 
 	public function getGoogleForm()

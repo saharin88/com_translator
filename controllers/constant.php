@@ -227,8 +227,12 @@ class TranslatorControllerConstant extends FormController
 
 	public function saveAjax()
 	{
-		$result = $this->save();
+
 		$data   = $this->input->post->get('jform', array(), 'array');
+
+
+
+		$result = $this->save();
 		exit(new JsonResponse($data, $this->message, !$result, false));
 	}
 
