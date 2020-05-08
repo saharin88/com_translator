@@ -64,10 +64,12 @@ class TranslatorModelFiles extends ListModel
 
 	protected function populateState($ordering = 'a.element', $direction = 'asc')
 	{
+		$app = Factory::getApplication();
+
 		$client = $this->getUserStateFromRequest($this->context . '.filter.client', 'filter_client', 'site');
 		$this->setState('filter.client', $client);
 
-		$language = $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', Factory::getLanguage()->getTag());
+		$language = $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', $app->getLanguage()->getTag());
 		$this->setState('filter.language', $language);
 
 		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '');
@@ -75,13 +77,11 @@ class TranslatorModelFiles extends ListModel
 
 		$this->setState('filter.compare', 0);
 
-		$app = Factory::getApplication();
-
 		$formSubmited = $app->input->post->get('form_submited');
 
 		if (!empty($formSubmited))
 		{
-			$filters = Factory::getApplication()->input->post->get('filter', [], 'array');
+			$filters = $app->input->post->get('filter', [], 'array');
 			foreach ($filters as $key => $val)
 			{
 				$this->setState('filter.' . $key, $val);
@@ -89,6 +89,25 @@ class TranslatorModelFiles extends ListModel
 			}
 
 		}
+	}
+
+	protected function loadFormData()
+	{
+
+		$data = parent::loadFormData();
+
+		// Pre-fill the list options
+		if (!property_exists($data, 'filter'))
+		{
+			$data->filter = array(
+				'client' => $this->getState('filter.client'),
+				'language'     => $this->getState('filter.language'),
+				'search'  => $this->getState('filter.search'),
+				'compare'     => $this->getState('filter.compare'),
+			);
+		}
+
+		return $data;
 	}
 
 }
