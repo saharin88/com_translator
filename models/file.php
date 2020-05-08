@@ -123,7 +123,14 @@ class TranslatorModelFile extends FormModel
 		$query = $db->getQuery(true);
 		$query->select('`type`, `element`, `folder`');
 		$query->from('#__extensions');
-		$query->where('extension_id = ' . (int) $extension_id);
+		if (is_numeric($extension_id))
+		{
+			$query->where('extension_id = ' . (int) $extension_id);
+		}
+		else
+		{
+			$query->where('name = ' . $db->q($extension_id));
+		}
 		$db->setQuery($query);
 
 		return $db->loadObject();

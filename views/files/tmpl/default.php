@@ -10,6 +10,7 @@ use Joomla\CMS\
 	Layout\LayoutHelper,
 	HTML\HTMLHelper,
 	Language\LanguageHelper,
+	Session\Session,
 };
 
 HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
@@ -155,7 +156,7 @@ $doc->addStyleDeclaration($css);
 								?>
                                 <td class="center">
 									<?php
-									echo $countCompareConstants . ($diffConstants === false ? '' : ' <span class="hasTooltip diff-constants text-error" title="' . implode('<br/>', array_keys($diffConstants)) . '">(' . count($diffConstants) . ')</span>');
+									echo($countCompareConstants === '-' ? HTMLHelper::_('link', Route::_('index.php?option=com_translator&task=file.create&file=' . $compareFileKey . '&' . Session::getFormToken() . '=1', false), Text::_('COM_TRANSLATOR_ADD_FILE')) : $countCompareConstants . ($diffConstants === false ? '' : ' <span class="hasTooltip diff-constants text-error" title="' . implode('<br/>', array_keys($diffConstants)) . '">(' . count($diffConstants) . ')</span>'));
 									?>
                                 </td>
 								<?php

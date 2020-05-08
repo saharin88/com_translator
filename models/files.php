@@ -93,17 +93,16 @@ class TranslatorModelFiles extends ListModel
 
 	protected function loadFormData()
 	{
-
 		$data = parent::loadFormData();
 
-		// Pre-fill the list options
+		// Pre-fill the filter options
 		if (!property_exists($data, 'filter'))
 		{
 			$data->filter = array(
-				'client' => $this->getState('filter.client'),
-				'language'     => $this->getState('filter.language'),
-				'search'  => $this->getState('filter.search'),
-				'compare'     => $this->getState('filter.compare'),
+				'client'   => $this->getState('filter.client'),
+				'language' => $this->getState('filter.language'),
+				'search'   => $this->getState('filter.search'),
+				'compare'  => $this->getState('filter.compare'),
 			);
 		}
 

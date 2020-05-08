@@ -8,6 +8,7 @@ use Joomla\CMS\
 	Language\Text,
 	Router\Route,
 	MVC\Controller\FormController,
+	Session\Session
 };
 
 class TranslatorControllerFile extends FormController
@@ -100,6 +101,80 @@ class TranslatorControllerFile extends FormController
 		$model = $this->getModel();
 		$model->reSave($cid);
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false))->redirect();
+	}
+
+	public function create()
+	{
+		$this->checkToken('get', false) or die('Error Token');
+
+		$file = $this->input->get->get('file', null, 'raw');
+
+		try
+
+		{
+
+			if (empty($file))
+			{
+				throw new Exception(Text::_('COM_TRANSLATOR_MISSING_FILE'));
+			}
+
+
+			$fileExpl = explode(':', $file);
+
+			if (!empty($fileExpl[1]))
+			{
+				$filename = $fileExpl[1];
+			}
+			else
+			{
+				throw new Exception(Text::_('COM_TRANSLATOR_FILENAME_EMPTY'));
+			}
+
+			if($fileExpl[0] === 'site')
+			{
+				$client = 1;
+			}
+			else
+			{
+				$client = 0;
+			}
+
+			$data = [];
+
+			$filename = str_replace('.sys', '', $filename);
+
+			if($filename === $fileExpl[1])
+			{
+				$data['sys'] = 0;
+			}
+			else
+			{
+				$data['sys'] = 1;
+			}
+
+			$filename = str_replace('.ini', '', $filename);
+
+			$fileExpl = explode('.', $filename);
+
+			if (empty($fileExpl[1]))
+			{
+				throw new Exception(Text::_('COM_TRANSLATOR_CREATE_FILE_EXPANSION_ONLY'));
+			}
+
+			$data['language'] = $fileExpl[0].$client;
+			$data['extension'] = $fileExpl[1];
+
+			$this->input->post->set('jform', $data);
+			$this->input->post->set(Session::getFormToken(), '1');
+
+			$this->save();
+
+		}
+		catch (Exception $e)
+		{
+			$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false), $e->getMessage(), 'error')->redirect();
+		}
+
 	}
 
 }
