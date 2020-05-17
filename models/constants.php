@@ -111,6 +111,7 @@ class TranslatorModelConstants extends ListModel
 	{
 
 		$app = Factory::getApplication();
+
 		$this->setState('file', $app->input->get('file', null, 'raw'));
 
 		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '');
@@ -121,17 +122,14 @@ class TranslatorModelConstants extends ListModel
 
 	}
 
-	public function getGoogleForm()
+	public function getTranslateForm()
 	{
-		$form = $this->loadForm($this->context . '.translate', 'google', ['control' => '', 'load_data' => []]);
+		$form = $this->loadForm($this->context . '.translate', 'translate', ['control' => '', 'load_data' => []]);
 
 		list($client, $filename) = explode(':', $this->getState('file'));
 		$language = mb_stristr($filename, '.', true, 'UTF-8');
-
-		$form->setFieldAttribute('source', 'client', $client, 'translate.google');
-		$form->setFieldAttribute('target', 'client', $client, 'translate.google');
-		$form->setFieldAttribute('target', 'default', $language, 'translate.google');
-		$form->setValue('client', 'translate.google', $client);
+		$form->setFieldAttribute('to', 'default', $language, 'translate');
+		$form->setValue('client', 'translate', $client);
 
 		return $form;
 	}

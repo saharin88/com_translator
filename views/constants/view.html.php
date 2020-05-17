@@ -26,7 +26,7 @@ class TranslatorViewConstants extends HtmlView
 
 	public $filterForm;
 
-	public $googleForm;
+	public $translateForm;
 
 	public $to_file;
 
@@ -44,7 +44,7 @@ class TranslatorViewConstants extends HtmlView
 
 				$this->filterForm    = $this->get('FilterForm');
 				$this->activeFilters = $this->get('ActiveFilters');
-				$this->googleForm    = $this->get('GoogleForm');
+				$this->translateForm = $this->get('TranslateForm');
 				break;
 
 			case 'import':
@@ -100,11 +100,14 @@ class TranslatorViewConstants extends HtmlView
 			ToolbarHelper::addNew('constant.add', 'COM_TRANSLATOR_NEW_CONSTANT');
 
 
-			$layout = new FileLayout('joomla.toolbar.translate.google');
-			$bar->appendButton('Custom', $layout->render());
-
+			foreach (['google', 'microsoft'] as $translateBy)
+			{
+				$layout = new FileLayout('com_translator.toolbar.button.' . $translateBy);
+				$bar->appendButton('Custom', $layout->render());
+			}
 
 			ToolbarHelper::deleteList('', 'constants.delete');
+
 			$files = $this->get('OtherLangs');
 			if (count($files))
 			{

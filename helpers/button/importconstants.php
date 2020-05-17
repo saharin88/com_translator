@@ -13,8 +13,6 @@ use Joomla\CMS\
 class JToolbarButtonImportConstants extends ToolbarButton
 {
 
-	protected $_name = 'ImportConstants';
-
 	public function fetchButton($type = 'ImportConstants', $name = '', $label = '', $files = [], $to_file = null)
 	{
 		if (empty($to_file) || file_exists(TranslatorHelper::getPath($to_file)) === false)
@@ -29,7 +27,7 @@ class JToolbarButtonImportConstants extends ToolbarButton
 			'to_file' => $to_file
 		];
 
-		$layout = new FileLayout(strtolower($type));
+		$layout = new FileLayout('com_translator.toolbar.import');
 
 		return $layout->render($options);
 	}

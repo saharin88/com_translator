@@ -16,6 +16,7 @@ class TranslatorControllerConstants extends BaseController
 		parent::__construct($config);
 
 		$this->registerTask('translateByGoogle', 'translate');
+		$this->registerTask('translateByMicrosoft', 'translate');
 	}
 
 

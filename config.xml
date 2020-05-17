@@ -29,4 +29,40 @@
 
     </fieldset>
 
+    <fieldset
+            name="google"
+            label="COM_TRANSLATOR_GOOGLE_TRANSLATE_CONFIGURATION">
+
+        <field
+                name="google_attempts"
+                type="numeric"
+                label="COM_TRANSLATOR_GOOGLE_ATTEMPTS_LABEL"
+                steep="1"
+                default="5"
+                min="1"
+                max="10"
+        />
+
+    </fieldset>
+
+    <fieldset
+            name="microsoft"
+            label="COM_TRANSLATOR_MICROSOFT_TRANSLATOR_CONFIGURATION">
+
+        <field
+                name="microsoft_api_key"
+                type="text"
+                label="COM_TRANSLATOR_MICROSOFT_API_KEY_LABEL"
+                default=""
+        />
+
+        <field
+                name="microsoft_end_point"
+                type="url"
+                label="COM_TRANSLATOR_MICROSOFT_END_POINT_LABEL"
+                default="https://api.cognitive.microsoft.com/"
+        />
+
+    </fieldset>
+
 </config>

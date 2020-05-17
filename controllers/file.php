@@ -106,18 +106,13 @@ class TranslatorControllerFile extends FormController
 	public function create()
 	{
 		$this->checkToken('get', false) or die('Error Token');
-
 		$file = $this->input->get->get('file', null, 'raw');
-
 		try
-
 		{
-
 			if (empty($file))
 			{
 				throw new Exception(Text::_('COM_TRANSLATOR_MISSING_FILE'));
 			}
-
 
 			$fileExpl = explode(':', $file);
 
@@ -168,13 +163,11 @@ class TranslatorControllerFile extends FormController
 			$this->input->post->set(Session::getFormToken(), '1');
 
 			$this->save();
-
 		}
 		catch (Exception $e)
 		{
 			$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false), $e->getMessage(), 'error')->redirect();
 		}
-
 	}
 
 }

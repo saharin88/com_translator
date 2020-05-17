@@ -370,11 +370,11 @@ $editMode = $this->state->get('edit_mode', '0');
 			<?php
 		}
 
-		echo HTMLHelper::_('bootstrap.renderModal', 'translateByGoogleModal', [
-			'title'      => Text::_('COM_TRANSLATOR_TOOLBAR_GOOGLE_LABEL'),
+		echo HTMLHelper::_('bootstrap.renderModal', 'translateModal', [
+			'title'      => Text::_('COM_TRANSLATOR_TRANSLATE'),
 			'modalWidth' => '30',
-			'footer'     => '<button type="submit" class="btn btn-success" onclick="Joomla.submitbutton(\'constants.translateByGoogle\');">' . Text::_('COM_TRANSLATOR_TRANSLATE') . '</button>'
-		], '<div class="container-popup form-horizontal">' . $this->googleForm->renderFieldset('default') . '</div>');
+			'footer'     => '<button type="submit" class="btn btn-success" onclick="this.form.submit();">' . Text::_('COM_TRANSLATOR_TRANSLATE') . '</button>'
+		], '<div class="container-popup form-horizontal">' . $this->translateForm->renderFieldset('default') . '</div>');
 
 		?>
 

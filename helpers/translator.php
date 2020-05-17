@@ -12,6 +12,10 @@ use Joomla\CMS\
 	Language\LanguageHelper,
 	Language\Text,
 };
+use Buzz\Browser;
+use MatthiasNoback\MicrosoftOAuth\AzureTokenProvider;
+use MatthiasNoback\MicrosoftTranslator\MicrosoftTranslator;
+use MatthiasNoback\MicrosoftTranslator\ApiCall\Translate;
 
 class TranslatorHelper
 {
@@ -20,11 +24,33 @@ class TranslatorHelper
 
 	protected static $path = [];
 
-	public static function translateByGoogle(string $source, string $target, string $text, ?int $attempts = 5)
-	{
-		$tr = new GoogleTranslateForFree();
+	protected static $translator = [];
 
-		return $tr->translate($source, $target, $text, $attempts);
+	public static function translateByGoogle(string $text, string $to, ?string $from = null)
+	{
+		if (isset(self::$translator['google']) === false || !self::$translator['google'] instanceof GoogleTranslateForFree)
+		{
+			self::$translator['google'] = new GoogleTranslateForFree();
+		}
+
+		if (empty($from))
+		{
+			$from = 'auto';
+		}
+
+		return self::$translator['google']->translate($from, $to, $text, TranslatorHelper::getParam('google_attempts', 5));
+	}
+
+	public static function translateByMicrosoft(string $text, string $to, ?string $from = null)
+	{
+		if (isset(self::$translator['microsoft']) === false || !self::$translator['microsoft'] instanceof MicrosoftTranslator)
+		{
+			$browser                       = new Browser();
+			$accessTokenProvider           = new AzureTokenProvider($browser, self::getParam('microsoft_api_key'), self::getParam('microsoft_end_point', 'https://api.cognitive.microsoft.com/') . 'sts/v1.0/issueToken');
+			self::$translator['microsoft'] = new MicrosoftTranslator($browser, $accessTokenProvider);
+		}
+
+		return self::$translator['microsoft']->translate($text, $to, $from, null, Translate::CONTENT_TYPE_HTML);
 	}
 
 	public static function getParam($name, $default = null)
@@ -70,7 +96,7 @@ class TranslatorHelper
 
 		$fileExpl = explode('.', $filename);
 
-		if(empty($fileExpl[1]))
+		if (empty($fileExpl[1]))
 		{
 			return false;
 		}

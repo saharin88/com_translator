@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+
+    <fieldset name="default">
+
+        <fields name="translate">
+
+            <field
+                    name="from"
+                    type="language"
+                    label="COM_TRANSLATOR_TRANSLATE_FROM_LABEL"
+                    default=""
+            >
+                <option value="">COM_TRANSLATOR_GOOGLE_AUTO_VALUE</option>
+            </field>
+
+            <field
+                    name="to"
+                    type="language"
+                    label="COM_TRANSLATOR_TRANSLATE_TO_LABEL"
+                    required="true"
+            />
+
+            <field
+                    type="hidden"
+                    name="client"
+            />
+
+        </fields>
+
+    </fieldset>
+
+
+</form>
+

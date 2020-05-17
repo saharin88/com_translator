@@ -164,18 +164,27 @@ class TranslatorModelConstant extends FormModel
 
 	public function translateByGoogle(array $keys, array $translate, string $file)
 	{
+		$this->translate($keys, $translate, $file, 'google');
+	}
 
-		$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($translate['google']['client'])));
+	public function translateByMicrosoft(array $keys, array $translate, string $file)
+	{
+		$this->translate($keys, $translate, $file, 'microsoft');
+	}
 
-		if (empty($translate['google']['source']))
+	protected function translate(array $keys, array $translate, string $file, string $by = 'google')
+	{
+		$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($translate['client'])));
+
+		if (empty($translate['from']))
 		{
-			$source = 'auto';
+			$from = null;
 		}
 		else
 		{
-			if (isset($languages[$translate['google']['source']]))
+			if (isset($languages[$translate['from']]))
 			{
-				$source = $translate['google']['source'];
+				$from = $translate['from']; //$languages[$translate['from']]->sef;
 			}
 			else
 			{
@@ -183,15 +192,15 @@ class TranslatorModelConstant extends FormModel
 			}
 		}
 
-		if (empty($translate['google']['target']))
+		if (empty($translate['to']))
 		{
-			throw new Exception('Empty target param for google translate');
+			throw new Exception('Empty target param for translate');
 		}
 		else
 		{
-			if (isset($languages[$translate['google']['target']]))
+			if (isset($languages[$translate['to']]))
 			{
-				$target = $translate['google']['target'];
+				$to = $translate['to']; // $languages[$translate['to']]->sef;
 			}
 			else
 			{
@@ -199,12 +208,12 @@ class TranslatorModelConstant extends FormModel
 			}
 		}
 
-		if ($source === $target)
+		if ($from === $to)
 		{
-			throw new Exception(Text::_('COM_TRANSLATOR_GOOGLE_SOURCE_TARGET_EQUAL'));
+			throw new Exception(Text::_('COM_TRANSLATOR_SOURCE_TARGET_EQUAL'));
 		}
 
-		$attempts = (int) (empty($translate['google']['attempts']) ? 5 : $translate['google']['attempts']);
+		$method = 'translateBy' . ucfirst($by);
 
 		$app = Factory::getApplication();
 
@@ -212,14 +221,13 @@ class TranslatorModelConstant extends FormModel
 
 		foreach ($keys AS $key)
 		{
-
 			if (isset($constants[$key]) === false)
 			{
 				$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_NOT_FOUND', $key), 'error');
 				continue;
 			}
 
-			$result = TranslatorHelper::translateByGoogle($source, $target, $constants[$key], $attempts);
+			$result = TranslatorHelper::$method($constants[$key], $to, empty($from) ? null : $from);
 
 			if (empty($result))
 			{
@@ -240,9 +248,7 @@ class TranslatorModelConstant extends FormModel
 			{
 				$app->enqueueMessage(Text::sprintf('COM_TRANSLATOR_CONSTANT_SAVE_ERROR', $key, $e->getMessage()), 'error');
 			}
-
 		}
-
 	}
 
 	/**
