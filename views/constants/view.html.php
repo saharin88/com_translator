@@ -90,6 +90,7 @@ class TranslatorViewConstants extends HtmlView
 		$doc->addStyleDeclaration('#toolbar-heart {float:right;}');
 		ToolbarHelper::link('https://www.liqpay.ua/en/checkout/saharin88', 'Donate', 'heart');
 
+		ToolbarHelper::preferences('com_translator');
 
 		if ($this->getLayout() === 'default')
 		{
