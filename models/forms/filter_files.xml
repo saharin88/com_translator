@@ -29,6 +29,19 @@
                 onchange="this.form.submit();"
         />
 
+        <field
+                name="type"
+                type="list"
+                onchange="this.form.submit();"
+                filtermode="selector"
+        >
+            <option value="">COM_TRANSLATOR_SELECT_TYPE</option>
+            <option value="com_">COM_TRANSLATOR_COMPONENTS</option>
+            <option value="mod_">COM_TRANSLATOR_MODULES</option>
+            <option value="plg_">COM_TRANSLATOR_PLUGINS</option>
+            <option value="tpl_">COM_TRANSLATOR_TEMPLATES</option>
+        </field>
+
     </fields>
 
 </form>

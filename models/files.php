@@ -37,6 +37,11 @@ class TranslatorModelFiles extends ListModel
 			$filters[] = '.com_translator';
 		}
 
+		if ($type = $this->getState('filter.type'))
+		{
+			$args[1] = $type;
+		}
+
 		$args[] = $filters;
 
 		$files = Folder::files(...$args);
@@ -75,6 +80,9 @@ class TranslatorModelFiles extends ListModel
 		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '');
 		$this->setState('filter.search', $search);
 
+		$search = $this->getUserStateFromRequest($this->context . '.filter.type', 'filter_type');
+		$this->setState('filter.search', $search);
+
 		$this->setState('filter.compare', 0);
 
 		$formSubmited = $app->input->post->get('form_submited');
@@ -103,6 +111,7 @@ class TranslatorModelFiles extends ListModel
 				'language' => $this->getState('filter.language'),
 				'search'   => $this->getState('filter.search'),
 				'compare'  => $this->getState('filter.compare'),
+				'type'     => $this->getState('filter.type'),
 			);
 		}
 
