@@ -85,6 +85,18 @@ class TranslatorControllerConstants extends BaseController
 
 	}
 
+	public function importAll()
+	{
+		$this->checkToken('get', false) or die('Error Token');
+		$file             = $this->input->get('file', null, 'raw');
+		$from_file        = $this->input->get('from_file', null, 'raw');
+		$constants        = TranslatorHelper::getConstants($file);
+		$compareConstants = TranslatorHelper::getConstants($from_file);
+		$this->input->set('cid', array_keys(array_diff_key($compareConstants, $constants)));
+		$this->input->post->set(\Joomla\CMS\Session\Session::getFormToken(), '1');
+		$this->import();
+	}
+
 	public function translate()
 	{
 

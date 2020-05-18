@@ -40,6 +40,7 @@
             <option value="mod_">COM_TRANSLATOR_MODULES</option>
             <option value="plg_">COM_TRANSLATOR_PLUGINS</option>
             <option value="tpl_">COM_TRANSLATOR_TEMPLATES</option>
+            <option value="lib_">COM_TRANSLATOR_LIBRARIES</option>
         </field>
 
     </fields>

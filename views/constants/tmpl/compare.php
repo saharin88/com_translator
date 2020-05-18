@@ -248,7 +248,7 @@ $editMode = $this->state->get('edit_mode', '0');
 					</th>
 
 					<th>
-						<?= Text::_('COM_TRANSLATOR_CONSTANT_KEY') ?>
+						<?= Text::_('COM_TRANSLATOR_CONSTANT') ?>
 					</th>
 
 					<th class="center">

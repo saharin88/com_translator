@@ -7,6 +7,8 @@ use Joomla\CMS\
 	Language\Text,
 	MVC\View\HtmlView,
 	Toolbar\ToolbarHelper,
+	Toolbar\Toolbar,
+	Layout\FileLayout,
 };
 
 class TranslatorViewFile extends HtmlView
@@ -30,10 +32,12 @@ class TranslatorViewFile extends HtmlView
 
 	protected function addToolbar()
 	{
+		$bar = Toolbar::getInstance('toolbar');
+
 		ToolbarHelper::title(Text::_('COM_TRANSLATOR_ADD_FILE'), 'file-plus');
 
-		\Joomla\CMS\Factory::getDocument()->addStyleDeclaration('#toolbar-heart {float:right;}');
-		ToolbarHelper::link('https://www.liqpay.ua/en/checkout/saharin88', 'Donate', 'heart');
+		$layout = new FileLayout('com_translator.toolbar.button.donate');
+		$bar->appendButton('Custom', $layout->render(), 'donate');
 
 		ToolbarHelper::save('file.save', 'JTOOLBAR_APPLY');
 		ToolbarHelper::cancel('file.cancel', 'JTOOLBAR_CANCEL');

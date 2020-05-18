@@ -76,7 +76,7 @@ $doc->addScriptDeclaration('
                         </th>
 
                         <th>
-							<?= Text::_('COM_TRANSLATOR_CONSTANT_KEY') ?>
+							<?= Text::_('COM_TRANSLATOR_CONSTANT') ?>
                         </th>
 
                         <th class="center">

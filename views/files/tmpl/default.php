@@ -13,6 +13,7 @@ use Joomla\CMS\
 	Session\Session,
 };
 
+Text::script('COM_TRANSLATOR_CONFIRM_IMPORT_ALL');
 HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 
 if ($this->state->get('filter.compare'))
@@ -28,6 +29,11 @@ else
 $doc = Factory::getDocument();
 $js  = <<< JS
 jQuery(document).ready(function($) {
+    
+    $('.diff-constants').click(function(){
+        return confirm(Joomla.Text._('COM_TRANSLATOR_CONFIRM_IMPORT_ALL'));
+    });
+    
     $('#compareCheckbox').on('click', function(e) {
         if($(this).is(':checked')) {
             $('#compare').val('1');
@@ -36,6 +42,7 @@ jQuery(document).ready(function($) {
         }
         this.form.submit();
     });
+    
 });
 JS;
 $css = <<< CSS
@@ -156,7 +163,22 @@ $doc->addStyleDeclaration($css);
 								?>
                                 <td class="center">
 									<?php
-									echo($countCompareConstants === '-' ? HTMLHelper::_('link', Route::_('index.php?option=com_translator&task=file.create&file=' . $compareFileKey . '&' . Session::getFormToken() . '=1', false), Text::_('COM_TRANSLATOR_ADD_FILE')) : $countCompareConstants . ($diffConstants === false ? '' : ' <span class="hasTooltip diff-constants text-error" title="' . implode('<br/>', array_keys($diffConstants)) . '">(' . count($diffConstants) . ')</span>'));
+
+									if ($countCompareConstants === '-')
+									{
+										echo HTMLHelper::_('link', Route::_('index.php?option=com_translator&task=file.create&file=' . $compareFileKey . '&' . Session::getFormToken() . '=1', false), Text::_('COM_TRANSLATOR_ADD_FILE'));
+									}
+									else
+									{
+										echo $countCompareConstants;
+										if ($diffConstants !== false)
+										{
+											$title = implode('<br/>', array_keys($diffConstants));
+											?>
+                                            <a href="<?= Route::_('index.php?option=com_translator&task=constants.importAll&file=' . $fileKey . '&from_file=' . $compareFileKey . '&' . Session::getFormToken() . '=1', false) ?>" class="hasTooltip diff-constants text-error" title="">(<?= count($diffConstants) ?>)</a>
+											<?php
+										}
+									}
 									?>
                                 </td>
 								<?php

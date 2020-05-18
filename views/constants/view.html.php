@@ -84,17 +84,16 @@ class TranslatorViewConstants extends HtmlView
 	{
 		$doc = Factory::getDocument();
 		$app = Factory::getApplication();
+		$bar = Toolbar::getInstance('toolbar');
 
 		ToolbarHelper::title(Text::sprintf('COM_TRANSLATOR_LANGUAGE_FILE_S', str_replace(':', '/', $this->state->get('file'))), 'file-2');
 
-		$doc->addStyleDeclaration('#toolbar-heart {float:right;}');
-		ToolbarHelper::link('https://www.liqpay.ua/en/checkout/saharin88', 'Donate', 'heart');
-
-		ToolbarHelper::preferences('com_translator');
-
 		if ($this->getLayout() === 'default')
 		{
-			$bar = Toolbar::getInstance('toolbar');
+			$layout = new FileLayout('com_translator.toolbar.button.donate');
+			$bar->appendButton('Custom', $layout->render(), 'donate');
+
+			ToolbarHelper::preferences('com_translator');
 
 			ToolbarHelper::link(JRoute::_('index.php?option=com_translator&view=files', false), Text::_('COM_TRANSLATOR_BACK_TO_LIST'), 'arrow-left-3');
 
