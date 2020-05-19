@@ -83,8 +83,8 @@ class TranslatorModelFiles extends ListModel
 		$type = $this->getUserStateFromRequest($this->context . '.filter.type', 'filter_type');
 		$this->setState('filter.type', $type);
 
-		$compare = $this->getUserStateFromRequest($this->context . '.filter.compare', 'filter_compare', null, 'array');
-		$this->setState('filter.compare', $compare);
+		$compare = $this->getUserStateFromRequest($this->context . '.compare', 'compare', null, 'array');
+		$this->setState('compare', $compare);
 
 		$formSubmited = $app->input->post->get('form_submited');
 
@@ -96,7 +96,7 @@ class TranslatorModelFiles extends ListModel
 				$this->setState('filter.' . $key, $val);
 				$app->setUserState($this->context . '.filter.' . $key, $val);
 			}
-
+			$this->setState('compare', $app->input->post->get('compare', [], 'array'));
 		}
 	}
 
@@ -111,7 +111,6 @@ class TranslatorModelFiles extends ListModel
 				'client'   => $this->getState('filter.client'),
 				'language' => $this->getState('filter.language'),
 				'search'   => $this->getState('filter.search'),
-				'compare'  => $this->getState('filter.compare'),
 				'type'     => $this->getState('filter.type'),
 			);
 		}

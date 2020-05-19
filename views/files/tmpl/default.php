@@ -17,10 +17,17 @@ Text::script('COM_TRANSLATOR_CONFIRM_IMPORT_ALL');
 HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 HTMLHelper::_('formbehavior.chosen', 'select');
 
-$compare = $this->state->get('filter.compare', []);
+$compare = $this->state->get('compare', []);
 
 $languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($this->state->get('filter.client', 'site'))));
 unset($languages[$this->state->get('filter.language', Factory::getLanguage()->getTag())]);
+
+$compareLanguages = [];
+
+if (count($languages) && count($compare))
+{
+	$compareLanguages = array_intersect_key($languages, array_flip($compare));
+}
 
 
 $doc = Factory::getDocument();
@@ -94,7 +101,7 @@ $doc->addStyleDeclaration($css);
                         <label class="control-label" for="selectForCompare"><?= Text::_('COM_TRANSLATE_SHOW_LANGUAGES_FOR_COMPARE') ?></label>
                         <div class="controls">
                             <span id="compareCount" class="muted hidden">5</span>
-                            <select name="filter[compare][]" multiple="multiple" id="selectForCompare">
+                            <select name="compare[]" multiple="multiple" id="selectForCompare">
 								<?php
 								foreach ($languages AS $language)
 								{
@@ -137,9 +144,9 @@ $doc->addStyleDeclaration($css);
 						<?= Text::_('COM_TRANSLATOR_NUMBER_OF_CONSTANTS') ?>
                     </th>
 					<?php
-					if (!empty($languages) && count($compare))
+					if (count($compareLanguages))
 					{
-						foreach (array_intersect_key($languages, array_flip($compare)) as $language)
+						foreach ($compareLanguages as $language)
 						{
 							?>
                             <th class="center">
@@ -174,9 +181,9 @@ $doc->addStyleDeclaration($css);
 							<?= $countConstants ?>
                         </td>
 						<?php
-						if (!empty($languages) && count($compare))
+						if (count($compareLanguages))
 						{
-							foreach (array_intersect_key($languages, array_flip($compare)) as $language)
+							foreach ($compareLanguages as $language)
 							{
 								$compareFile      = $this->state->get('filter.client', 'site') . ':' . $file;
 								$compareFileKey   = $this->state->get('filter.client', 'site') . ':' . $language['tag'] . $fileWithoutTag;
