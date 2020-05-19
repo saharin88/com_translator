@@ -15,16 +15,13 @@ use Joomla\CMS\
 
 Text::script('COM_TRANSLATOR_CONFIRM_IMPORT_ALL');
 HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+HTMLHelper::_('formbehavior.chosen', 'select');
 
-if ($this->state->get('filter.compare'))
-{
-	$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($this->state->get('filter.client', 'site'))));
-	unset($languages[$this->state->get('filter.language', Factory::getLanguage()->getTag())]);
-}
-else
-{
-	$languages = [];
-}
+$compare = $this->state->get('filter.compare', []);
+
+$languages = LanguageHelper::getKnownLanguages(constant('JPATH_' . strtoupper($this->state->get('filter.client', 'site'))));
+unset($languages[$this->state->get('filter.language', Factory::getLanguage()->getTag())]);
+
 
 $doc = Factory::getDocument();
 $js  = <<< JS
@@ -34,20 +31,42 @@ jQuery(document).ready(function($) {
         return confirm(Joomla.Text._('COM_TRANSLATOR_CONFIRM_IMPORT_ALL'));
     });
     
-    $('#compareCheckbox').on('click', function(e) {
-        if($(this).is(':checked')) {
-            $('#compare').val('1');
-        } else {
-            $('#compare').val('0');
-        }
-        this.form.submit();
-    });
+    let timeout,
+        tCount,
+        count = 5,
+        dCount = function() {
+            count--;
+            $('#compareCount').text(count);
+            if(count > 0) {
+                tCount = setTimeout(dCount, 1000);
+            }
+        };
     
+    $('#selectForCompare').on('change', function(e) {
+        let _this = this;
+        clearTimeout(timeout);
+        clearTimeout(tCount);
+        count = 5;
+        $('#compareCount').removeClass('hidden').text(count);
+        tCount = setTimeout(dCount, 1000);
+        timeout = setTimeout(function() {
+            _this.form.submit();
+        }, 5000);
+    });
 });
 JS;
 $css = <<< CSS
 span.diff-constants {
     cursor: pointer;
+}
+#compare div.controls {
+    position: relative;
+}
+#compareCount {
+    position: absolute;
+    right: 5px;
+    bottom: 3px;
+    z-index: 1001;
 }
 CSS;
 $doc->addScriptDeclaration($js);
@@ -60,18 +79,37 @@ $doc->addStyleDeclaration($css);
 
     <div id="j-main-container">
 
-        <div>
+        <div class="clearfix">
 
             <div class="pull-left">
 				<?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this, 'options' => ['filtersHidden' => false]]) ?>
             </div>
 
-            <div class="pull-right">
-                <label class="checkbox">
-                    <input type="hidden" name="filter[compare]" value="0" id="compare">
-                    <input id="compareCheckbox" type="checkbox"<?= ($this->state->get('filter.compare') ? ' checked' : '') ?>> <?= Text::_('COM_TRANSLATE_SHOW_LANGUAGES_FOR_COMPARE') ?>
-                </label>
-            </div>
+			<?php
+			if (!empty($languages))
+			{
+				?>
+                <div class="pull-right" id="compare">
+                    <div class="control-group">
+                        <label class="control-label" for="selectForCompare"><?= Text::_('COM_TRANSLATE_SHOW_LANGUAGES_FOR_COMPARE') ?></label>
+                        <div class="controls">
+                            <span id="compareCount" class="muted hidden">5</span>
+                            <select name="filter[compare][]" multiple="multiple" id="selectForCompare">
+								<?php
+								foreach ($languages AS $language)
+								{
+									?>
+                                    <option value="<?= $language['tag'] ?>"<?= (in_array($language['tag'], $compare) ? ' selected' : '') ?>><?= $language['nativeName'] ?></option>
+									<?php
+								}
+								?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+				<?php
+			}
+			?>
 
         </div>
 
@@ -99,9 +137,9 @@ $doc->addStyleDeclaration($css);
 						<?= Text::_('COM_TRANSLATOR_NUMBER_OF_CONSTANTS') ?>
                     </th>
 					<?php
-					if (!empty($languages))
+					if (!empty($languages) && count($compare))
 					{
-						foreach ($languages as $language)
+						foreach (array_intersect_key($languages, array_flip($compare)) as $language)
 						{
 							?>
                             <th class="center">
@@ -136,9 +174,9 @@ $doc->addStyleDeclaration($css);
 							<?= $countConstants ?>
                         </td>
 						<?php
-						if (!empty($languages))
+						if (!empty($languages) && count($compare))
 						{
-							foreach ($languages as $language)
+							foreach (array_intersect_key($languages, array_flip($compare)) as $language)
 							{
 								$compareFile      = $this->state->get('filter.client', 'site') . ':' . $file;
 								$compareFileKey   = $this->state->get('filter.client', 'site') . ':' . $language['tag'] . $fileWithoutTag;
@@ -175,7 +213,7 @@ $doc->addStyleDeclaration($css);
 										{
 											$title = implode('<br/>', array_keys($diffConstants));
 											?>
-                                            <a href="<?= Route::_('index.php?option=com_translator&task=constants.importAll&file=' . $fileKey . '&from_file=' . $compareFileKey . '&' . Session::getFormToken() . '=1', false) ?>" class="hasTooltip diff-constants text-error" title="">(<?= count($diffConstants) ?>)</a>
+                                            <a href="<?= Route::_('index.php?option=com_translator&task=constants.importAll&file=' . $fileKey . '&from_file=' . $compareFileKey . '&' . Session::getFormToken() . '=1', false) ?>" class="hasTooltip diff-constants text-error" title="<?= $title ?>">(<?= count($diffConstants) ?>)</a>
 											<?php
 										}
 									}

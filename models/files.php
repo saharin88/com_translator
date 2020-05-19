@@ -80,10 +80,11 @@ class TranslatorModelFiles extends ListModel
 		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '');
 		$this->setState('filter.search', $search);
 
-		$search = $this->getUserStateFromRequest($this->context . '.filter.type', 'filter_type');
-		$this->setState('filter.search', $search);
+		$type = $this->getUserStateFromRequest($this->context . '.filter.type', 'filter_type');
+		$this->setState('filter.type', $type);
 
-		$this->setState('filter.compare', 0);
+		$compare = $this->getUserStateFromRequest($this->context . '.filter.compare', 'filter_compare', null, 'array');
+		$this->setState('filter.compare', $compare);
 
 		$formSubmited = $app->input->post->get('form_submited');
 
